@@ -10,6 +10,8 @@
 	<string>LRRLambdaConnectDemo</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
+		<key>0F42155F8597710D1BB8836368675104A64F0861</key>
+		<string>https://github.com/mll/LRRLambdaConnect.git</string>
 		<key>78AF62DA81DD3A26D43754059D6E8E7BEFF12292</key>
 		<string>https://github.com/mll/MLLIncrementalSynchronization.git</string>
 	</dict>
@@ -17,17 +19,27 @@
 	<string>LRRLambdaConnectDemo/LRRLambdaConnectDemo.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>78AF62DA81DD3A26D43754059D6E8E7BEFF12292</key>
+		<key>0F42155F8597710D1BB8836368675104A64F0861</key>
 		<string>../../..</string>
+		<key>78AF62DA81DD3A26D43754059D6E8E7BEFF12292</key>
+		<string>../../../../MLLIncrementalSynchronization</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/mll/MLLIncrementalSynchronization.git</string>
+	<string>https://github.com/mll/LRRLambdaConnect.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>78AF62DA81DD3A26D43754059D6E8E7BEFF12292</string>
+	<string>0F42155F8597710D1BB8836368675104A64F0861</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>0F42155F8597710D1BB8836368675104A64F0861</string>
+			<key>IDESourceControlWCCName</key>
+			<string>LambdaConnect</string>
+		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
