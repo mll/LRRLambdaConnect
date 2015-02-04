@@ -28,7 +28,7 @@
 - (void)willSave
 {
     [super willSave];
-    if(self.managedObjectContext == [LRRLambdaConnect sharedInstance].mainContext)  [self setPrimitiveValue:@YES forKey:@"isSuitableForPush"];
+    if(self.hasChanges && self.managedObjectContext == [LRRLambdaConnect sharedInstance].mainContext)  [self setPrimitiveValue:@YES forKey:@"isSuitableForPush"];
 }
 
 @end
