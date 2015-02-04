@@ -54,7 +54,7 @@
 }
 
 
-- (NSDictionary *) fetchCounterForSynchronizationType:(NSString *)type andEntityName:(NSString *)entityName inContext:(NSManagedObjectContext *)context
+- (id) fetchCounterForSynchronizationType:(NSString *)type andEntityName:(NSString *)entityName inContext:(NSManagedObjectContext *)context
 {
     [[NSUserDefaults standardUserDefaults] synchronize];
     return [[NSUserDefaults standardUserDefaults] objectForKey:[entityName stringByAppendingString:type]]?:@0;

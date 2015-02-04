@@ -167,6 +167,8 @@
     if(self.queue.operationCount) return;
     LRSynchronizationOperation *op = [LRSynchronizationOperation new];
     op.persistentStoreCoordinator = self.persistentStoreCoordinator;
+    NSAssert(self.strongConfigurationDelegate,@"No configuration delegate supplied");
+    NSAssert(self.strongDriverDelegate,@"No network driver delegate supplied");
     op.configurationDelegate = self.strongConfigurationDelegate;
     op.delegate = self.strongDriverDelegate;
     op.shouldDisplayLogs = self.shouldDisplayLogs;
