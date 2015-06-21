@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		EC0CCE6D1A80469000EE55BB /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC0CCE6C1A80469000EE55BB /* CoreData.framework */; };
+		EC5B23A21B04ACD000F79CC6 /* LRRObjectMapperOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = EC5B23A11B04ACD000F79CC6 /* LRRObjectMapperOperation.m */; };
+		EC5B23A61B04C86900F79CC6 /* MLLMapCar.m in Sources */ = {isa = PBXBuildFile; fileRef = EC5B23A51B04C86900F79CC6 /* MLLMapCar.m */; };
 		ECA96CCF1A7F9D7100679AD3 /* LRRSynchronizationOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = ECA96CCE1A7F9D7100679AD3 /* LRRSynchronizationOperation.m */; };
 		ECA96CD21A7FA5CA00679AD3 /* SampleDriver.m in Sources */ = {isa = PBXBuildFile; fileRef = ECA96CD11A7FA5CA00679AD3 /* SampleDriver.m */; };
 		ECA96CD51A7FB1C300679AD3 /* LRRLambdaConnect.m in Sources */ = {isa = PBXBuildFile; fileRef = ECA96CD41A7FB1C300679AD3 /* LRRLambdaConnect.m */; };
@@ -37,6 +39,11 @@
 
 /* Begin PBXFileReference section */
 		EC0CCE6C1A80469000EE55BB /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		EC5B23A01B04ACD000F79CC6 /* LRRObjectMapperOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LRRObjectMapperOperation.h; sourceTree = "<group>"; };
+		EC5B23A11B04ACD000F79CC6 /* LRRObjectMapperOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LRRObjectMapperOperation.m; sourceTree = "<group>"; };
+		EC5B23A31B04AD1800F79CC6 /* LRRSynchronizationConfigurationDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LRRSynchronizationConfigurationDelegate.h; sourceTree = "<group>"; };
+		EC5B23A41B04C86900F79CC6 /* MLLMapCar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLLMapCar.h; sourceTree = "<group>"; };
+		EC5B23A51B04C86900F79CC6 /* MLLMapCar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MLLMapCar.m; sourceTree = "<group>"; };
 		ECA96CCD1A7F9D7100679AD3 /* LRRSynchronizationOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LRRSynchronizationOperation.h; path = ../../LRRLambdaConnect/LRRSynchronizationOperation.h; sourceTree = "<group>"; };
 		ECA96CCE1A7F9D7100679AD3 /* LRRSynchronizationOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LRRSynchronizationOperation.m; path = ../../LRRLambdaConnect/LRRSynchronizationOperation.m; sourceTree = "<group>"; };
 		ECA96CD01A7FA5CA00679AD3 /* SampleDriver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SampleDriver.h; sourceTree = "<group>"; };
@@ -89,10 +96,13 @@
 		ECA96CCC1A7F9D5200679AD3 /* LRRIncrementalSynchronization */ = {
 			isa = PBXGroup;
 			children = (
+				EC5B23A31B04AD1800F79CC6 /* LRRSynchronizationConfigurationDelegate.h */,
 				ECA96CCD1A7F9D7100679AD3 /* LRRSynchronizationOperation.h */,
 				ECA96CCE1A7F9D7100679AD3 /* LRRSynchronizationOperation.m */,
 				ECA96CD31A7FB1C300679AD3 /* LRRLambdaConnect.h */,
 				ECA96CD41A7FB1C300679AD3 /* LRRLambdaConnect.m */,
+				EC5B23A01B04ACD000F79CC6 /* LRRObjectMapperOperation.h */,
+				EC5B23A11B04ACD000F79CC6 /* LRRObjectMapperOperation.m */,
 			);
 			name = LRRIncrementalSynchronization;
 			path = LRRLambdaConnectDemo;
@@ -135,6 +145,8 @@
 			isa = PBXGroup;
 			children = (
 				ECA96CDC1A80332F00679AD3 /* models */,
+				EC5B23A41B04C86900F79CC6 /* MLLMapCar.h */,
+				EC5B23A51B04C86900F79CC6 /* MLLMapCar.m */,
 				ECA96CD01A7FA5CA00679AD3 /* SampleDriver.h */,
 				ECA96CD11A7FA5CA00679AD3 /* SampleDriver.m */,
 				ECA96CE31A80353E00679AD3 /* SampleConfiguration.h */,
@@ -280,9 +292,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC5B23A21B04ACD000F79CC6 /* LRRObjectMapperOperation.m in Sources */,
 				ECF452421A7F9CEC0071AAE3 /* AppDelegate.m in Sources */,
 				ECA96CDF1A80335100679AD3 /* BaseEntity.m in Sources */,
 				ECA96CD21A7FA5CA00679AD3 /* SampleDriver.m in Sources */,
+				EC5B23A61B04C86900F79CC6 /* MLLMapCar.m in Sources */,
 				ECA96CD51A7FB1C300679AD3 /* LRRLambdaConnect.m in Sources */,
 				ECA96CE21A8034AE00679AD3 /* Author.m in Sources */,
 				ECF4523F1A7F9CEC0071AAE3 /* main.m in Sources */,
