@@ -88,7 +88,7 @@
         _mappings = [NSMutableDictionary dictionary];
         _inverseMappings = [NSMutableDictionary dictionary];
         NSDictionary *mapping = nil;
-
+        
         /* preparing mappings */
 
         for (NSString *entityName in [self.configurationDelegate pullEntities])
@@ -119,7 +119,7 @@
         if(self.shouldDisplayLogs) NSLog(@"-----> starting push");
         NSMutableDictionary *allObjects = nil;
         allObjects = [self push];
-        if(self.shouldDisplayLogs) NSLog(@"-----> ending push. Pushed %ld objects, error occured: %@", [allObjects count], _error.localizedDescription);
+        if(self.shouldDisplayLogs) NSLog(@"-----> ending push. Pushed %ld objects, error occured: %@", (unsigned long)[allObjects count], _error.localizedDescription);
 
         if (_error) _pushError = _error;
 
@@ -195,6 +195,7 @@
         dispatch_sync(dispatch_get_main_queue(), ^
         {
             [[NSNotificationCenter defaultCenter] postNotificationName:kLRRSyncComplete object:self userInfo:nil];
+            if(self.completion) self.completion(self.error);
         });
 
     } /* autoreleasepool */
@@ -231,7 +232,7 @@
             [allObjects setObject:object forKey:[NSString stringWithFormat:@"%@%@",object.entity.name,[object valueForKey:_keyAttribute]]];
         }
 
-        if(self.shouldDisplayLogs) NSLog(@"--> Will push %ld objects of type %@", [objects count], name);
+        if(self.shouldDisplayLogs) NSLog(@"--> Will push %ld objects of type %@", (unsigned long)[objects count], name);
 
         [pushDictionary setObject:tree forKey:[self.configurationDelegate tableNameForModelName:name]];
         if (self.isCancelled)
@@ -320,7 +321,7 @@
             NSNumber *maxCounterForEntity = nil;
             NSError *error = nil;
             NSDictionary *managedObjects = [self deserializeAllInstancesOfAnEntity:en fromArrayOfEntities:dictResponse[entityNameCandidate] intoContext:_backgroundContext maxCounter:&maxCounterForEntity error:&error];
-            if(self.shouldDisplayLogs) NSLog(@"-> %@ - deserialized %ld instances", entityName, managedObjects.count);
+            if(self.shouldDisplayLogs) NSLog(@"-> %@ - deserialized %ld instances", entityName, (unsigned long)managedObjects.count);
             if (error)
             {
                 _error = error;
@@ -368,7 +369,7 @@
                 }
             }
         } /* we now end this nightmareish loop and fetch */
-        if(self.shouldDisplayLogs) NSLog(@"--> Pull pass II: fetching additional %ld referenced objects", remainingObjects.count);
+        if(self.shouldDisplayLogs) NSLog(@"--> Pull pass II: fetching additional %ld referenced objects", (unsigned long)remainingObjects.count);
         NSMutableArray *fetchedRemainingObjects = [NSMutableArray arrayWithCapacity:1000];
         NSInteger remainingCount = 0;
         for (NSString *entityName in referencedEntities)
@@ -439,9 +440,9 @@
                         NSManagedObject *objetToAdd = allObjects[[NSString stringWithFormat:@"%@%@",rel.destinationEntity.name,val]];
                         NSParameterAssert(objetToAdd);
 
-                        if (![objetToAdd isKindOfClass:NSClassFromString(rel.destinationEntity.name)])
+                        if (![objetToAdd isKindOfClass:NSClassFromString([NSString stringWithFormat:@"%@", rel.destinationEntity.managedObjectClassName])])
                         {
-                            NSString *errorString = [NSString stringWithFormat:@"Relationship %@ for %@ - %@ expects %@ but got %@ - %@", relationship, deserializedObject.class, [deserializedObject valueForKey:_keyAttribute], rel.destinationEntity.name, objetToAdd.class, [objetToAdd valueForKey:_keyAttribute ]];
+                            NSString *errorString = [NSString stringWithFormat:@"Relationship %@ for %@ - %@ expects %@ but got %@ - %@", relationship, deserializedObject.class, [deserializedObject valueForKey:_keyAttribute], rel.destinationEntity.managedObjectClassName, objetToAdd.class, [objetToAdd valueForKey:_keyAttribute ]];
                             _error = [NSError errorWithDomain:@"SynchronizationOperation" code:0 userInfo:@{NSLocalizedDescriptionKey : errorString}];
                             _pullError = _error;
                             break;
@@ -458,8 +459,8 @@
                         {
                             NSManagedObject *objetToAdd = allObjects[[NSString stringWithFormat:@"%@%@",rel.destinationEntity.name,id]];
 
-                            if (![objetToAdd isKindOfClass:NSClassFromString(rel.destinationEntity.name)]) {
-                                NSString *errorString = [NSString stringWithFormat:@"Relationship %@ for %@ - %@ expects %@ but got %@ - %@", relationship, deserializedObject.class, [deserializedObject valueForKey:_keyAttribute ], rel.destinationEntity.name, objetToAdd.class, [objetToAdd valueForKey:_keyAttribute ]];
+                            if (![objetToAdd isKindOfClass:NSClassFromString([NSString stringWithFormat:@"%@", rel.destinationEntity.managedObjectClassName])]) {
+                                NSString *errorString = [NSString stringWithFormat:@"Relationship %@ for %@ - %@ expects %@ but got %@ - %@", relationship, deserializedObject.class, [deserializedObject valueForKey:_keyAttribute ], rel.destinationEntity.managedObjectClassName, objetToAdd.class, [objetToAdd valueForKey:_keyAttribute ]];
                                 _error = [NSError errorWithDomain:@"SynchronizationOperation" code:0 userInfo:@{NSLocalizedDescriptionKey : errorString}];
                                 _pullError = _error;
                                 break;
@@ -617,7 +618,8 @@
         NSString *attribute = mapping ? mapping[attributeCandidate] : attributeCandidate;
         
         if (!attribute) continue;
-
+        if([attribute isEqualToString:@"isSuitableForPush"] || [attribute isEqualToString:@"syncRevision"]) continue;
+        if(object.entity.attributesByName[attributeCandidate].isTransient) continue;
         id val = [object valueForKey:attributeCandidate];
         if (val == nil) val = [NSNull null];
         if ([val isKindOfClass:[NSDate class]])

@@ -46,9 +46,9 @@
  */
 - (void) setupCoreDataWithModelNamed: (NSString *)modelName databaseFileName: (NSString *)dbFileName mergePolicy: (id) mergePolicy;
 /** 
-  * This method immediately executes one synchronization cycle 
+  * This method immediately executes one synchronization cycle, calling the block on return
   */
-- (void) forceSynchronization;
+- (void) forceSynchronizationCompletion: (void (^)(NSError *error)) completion;
 /**
  * This method schedules periodic synchronization
  * @param interval Time interval (in seconds) between consecutive synchronizations.
@@ -62,5 +62,14 @@
  * This is an easy snipplet to save main context, one can use standard core data methods instead
  */
 - (void) saveMainContext;
+/**
+ * Clean up the database. Stops the synchronization in the process if it has not been stopped already.
+ * @param completion block to be called when the cleanup is done.
+ */
+- (void) deleteAllObjectsCompletion: (void (^)()) completion;
+/** 
+ * Free up the memory by turning all objects in the context into faults
+ */
+- (void) releaseAllObjects: (NSManagedObjectContext *) context;
 
 @end

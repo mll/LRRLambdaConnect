@@ -157,14 +157,18 @@
     }
 }
 
-- (void) forceSynchronization
+- (void) forceSynchronizationCompletion: (void (^)(NSError *error)) completion
 {
-    [self periodicJob];
+    [self periodicJobCompletion:completion];
 }
 
 - (void) periodicJob
 {
-    if(self.queue.operationCount) return;
+    [self periodicJobCompletion:nil];
+}
+
+- (void) periodicJobCompletion: (void (^)(NSError *error)) completion
+{
     LRSynchronizationOperation *op = [LRSynchronizationOperation new];
     op.persistentStoreCoordinator = self.persistentStoreCoordinator;
     NSAssert(self.strongConfigurationDelegate,@"No configuration delegate supplied");
@@ -172,6 +176,7 @@
     op.configurationDelegate = self.strongConfigurationDelegate;
     op.delegate = self.strongDriverDelegate;
     op.shouldDisplayLogs = self.shouldDisplayLogs;
+    op.completion = completion;
     [self.queue addOperation:op];
 }
 
@@ -179,6 +184,7 @@
 - (void) startSynchronizationWithTimeInterval: (NSTimeInterval) interval
 {
     if(self.synchronizationTimer) return;
+    [self forceSynchronizationCompletion:nil];
     self.synchronizationTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(periodicJob) userInfo:nil repeats:YES];
 }
 
@@ -192,6 +198,49 @@
     NSError *error = nil;
     BOOL ok  = [self.mainContext save:&error];
     NSAssert(ok,@"Error saving main context: %@",error);
+}
+
+- (void) deleteAllObjectsCompletion: (void (^)()) completion
+{
+    [self stopSynchronization];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [self.queue waitUntilAllOperationsAreFinished];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self releaseAllObjects:self.mainContext];
+            for(NSEntityDescription *e in self.mainContext.persistentStoreCoordinator.managedObjectModel.entities)
+            {
+                NSFetchRequest *frq = [[NSFetchRequest alloc] initWithEntityName:e.name];
+                NSError *err = nil;
+                NSArray *objects = [self.mainContext executeFetchRequest:frq error:&err];
+                NSAssert(!err, @"Error fetching objects for deletion; entity: %@", e.name);
+                for (NSManagedObject *o in objects) [self.mainContext deleteObject:o];
+            }
+            
+            [self saveMainContext];
+            if (completion) completion();
+        });
+    });
+}
+
+- (void) clearObjectSubtree: (NSManagedObject *) object visitedObjects: (NSSet *) visitedObjects{
+    if(!object || object.isFault || [visitedObjects containsObject:object]) return;
+    
+    for (NSRelationshipDescription *rel in object.entity.relationshipsByName.allValues) {
+        if ([object hasFaultForRelationshipNamed:rel.name]) continue;
+        id relObj = [object valueForKey:rel.name];
+        if (rel.isToMany) {
+            for (NSManagedObject *o in relObj) {
+                [self clearObjectSubtree:o visitedObjects:[visitedObjects setByAddingObject:object]];
+            }
+        } else [self clearObjectSubtree:relObj visitedObjects:[visitedObjects setByAddingObject:object]];
+    }
+    [object.managedObjectContext refreshObject:object mergeChanges:NO];
+}
+
+- (void) releaseAllObjects: (NSManagedObjectContext *) context {
+    for (NSManagedObject *object in context.registeredObjects) {
+        [self clearObjectSubtree:object visitedObjects:[NSSet set]];
+    }
 }
 
 

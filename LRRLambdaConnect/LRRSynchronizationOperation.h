@@ -40,7 +40,7 @@ static NSString *kLRRSyncComplete  = @"LRRSyncComplete";
  able to query the server for only incremental change. This method stores computed sync revisions.
  * @param counters Dictionary with keys being entity names and values being tokens that need to be stored (e.g. NSNumbers)
  * @param type String that indicates purpose, can be @"pull" or @"push". Just store pulls and pushes separately.
- * @param context NSManagedObjectContext your method should wor with (as it would be fired on a background thread).
+ * @param context NSManagedObjectContext your method should work with (as it would be fired on a background thread).
  * @return nil if all is ok, otherwise an NSError object describing the error.
  */
 
@@ -149,5 +149,7 @@ static NSString *kLRRSyncComplete  = @"LRRSyncComplete";
 @property(atomic, strong) NSMergePolicy *mergePolicy;
 /// If set to yes, detailed debugging info will be logged through NSLog
 @property(atomic, assign) BOOL shouldDisplayLogs;
+/// If set, completion block is fired after synchro completes
+@property(nonatomic, copy) void (^completion)(NSError *error);
 
 @end
