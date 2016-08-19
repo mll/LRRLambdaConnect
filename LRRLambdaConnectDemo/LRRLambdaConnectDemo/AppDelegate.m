@@ -1,9 +1,9 @@
 //
 //  AppDelegate.m
-//  MLLIncrementalSynchronizationDemo
+//  LRRLambdaConnectDemo
 //
 //  Created by Marek Lipert on 02.02.2015.
-//  Copyright (c) 2015 Lambdarocket. All rights reserved.
+//  Copyright (c) 2013-2016 Spinney. All rights reserved.
 //
 
 #import "AppDelegate.h"
@@ -60,7 +60,7 @@
 
 
 - (NSURL *)applicationDocumentsDirectory {
-    // The directory the application uses to store the Core Data store file. This code uses a directory named "com.lambdarocket.MLLIncrementalSynchronizationDemo" in the application's documents directory.
+    // The directory the application uses to store the Core Data store file. This code uses a directory named "com.lambdarocket.LRRLambdaConnectDemo" in the application's documents directory.
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
 }
 

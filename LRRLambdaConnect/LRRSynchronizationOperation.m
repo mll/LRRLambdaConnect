@@ -1,9 +1,9 @@
 //
-//  MLSynchronizationOperation.m
-//  Core Data integration test
+//  LRRSynchronizationOperation.m
+//  LRRLambdaConnect
 //
 //  Created by Marek Lipert on 06.04.2013.
-//  Copyright (c) 2013 Marek Lipert. All rights reserved.
+//  Copyright (c) 2013-2016 Spinney. All rights reserved.
 //
 
 #import "LRRSynchronizationOperation.h"

@@ -1,9 +1,9 @@
 //
-//  MLSynchronizationOperation.h
-//  Core Data integration test
+//  LRRSynchronizationOperation.h
+//  LRRLambdaConnect
 //
 //  Created by Marek Lipert on 06.04.2013.
-//  Copyright (c) 2013 Lambdarocket. All rights reserved.
+//  Copyright (c) 2013-2016 Spinney. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
