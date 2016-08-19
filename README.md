@@ -20,4 +20,4 @@ See our webpage for success stories. (www.spinney.io)
 5. Copy LRRLambdaConnect and LRRSynchronizationOperation to your porject (just 4 files!)
 6. Add stack initialization call to application:didFinishLaunchingWithOptions: (see demo project)
 7. Create NetworkDriver and Configuration classes (see demo project).
-8. Deploy synchronization calling either - (void) startSynchronizationWithTimeInterval: (NSTimeInterval) interval; or - (void) forceSynchronization;
+8. Deploy synchronization calling either - (void) startSynchronizationWithTimeInterval: (NSTimeInterval) interval; or - (void) forceSynchronizationCompletion: (void (^)(NSError *error)) completion
