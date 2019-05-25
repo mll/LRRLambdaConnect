@@ -3,7 +3,7 @@
 //  LRRLambdaConnect
 //
 //  Created by Marek Lipert on 06.04.2013.
-//  Copyright (c) 2013-2016 Spinney. All rights reserved.
+//  Copyright (c) 2013-2019 Spinney. All rights reserved.
 //
 
 #import "LRRSynchronizationOperation.h"
@@ -43,7 +43,7 @@
 
 @property(nonatomic, strong) NSString *keyAttribute;
 
-- (NSDictionary *)serializeObject:(NSManagedObject *)object;
+- (NSDictionary *)serializeObject:(NSManagedObject *)object excludedProperties: (NSSet *) excludedProperties;
 
 - (NSDictionary *)deserializeAllInstancesOfAnEntity:(NSEntityDescription *)entity fromArrayOfEntities:(NSArray *)array intoContext:(NSManagedObjectContext *)context maxCounter:(NSNumber * __autoreleasing *)maxCounter error:(NSError * __autoreleasing *)error;
 
@@ -223,10 +223,10 @@
             return allObjects;
         }
         NSMutableArray *tree = [NSMutableArray arrayWithCapacity:[objects count]];
-
+        NSSet *excludedProperties = [self.configurationDelegate excludedPropertiesForPushForEntity:name];
         for (NSManagedObject *object in objects)
         {
-            [tree addObject:[self serializeObject:object]];
+            [tree addObject:[self serializeObject:object excludedProperties: excludedProperties]];
             NSParameterAssert([object valueForKey:_keyAttribute]);
             
             [allObjects setObject:object forKey:[NSString stringWithFormat:@"%@%@",object.entity.name,[object valueForKey:_keyAttribute]]];
@@ -607,7 +607,7 @@
 }
 
 
-- (NSDictionary *)serializeObject:(NSManagedObject *)object
+- (NSDictionary *)serializeObject:(NSManagedObject *)object excludedProperties: (NSSet *) excludedProperties
 {
     NSParameterAssert(object);
     NSMutableDictionary *serialized = [NSMutableDictionary dictionary];
@@ -615,9 +615,10 @@
 
     for (NSString *attributeCandidate in object.entity.attributesByName)
     {
+        if([excludedProperties containsObject:attributeCandidate]) continue;
         NSString *attribute = mapping ? mapping[attributeCandidate] : attributeCandidate;
         
-        if (!attribute) continue;
+        if(!attribute) continue;
         if([attribute isEqualToString:@"isSuitableForPush"] || [attribute isEqualToString:@"syncRevision"]) continue;
         if(object.entity.attributesByName[attributeCandidate].isTransient) continue;
         id val = [object valueForKey:attributeCandidate];
@@ -634,6 +635,7 @@
 
     for (NSString *relationCandidate in object.entity.relationshipsByName)
     {
+        if([excludedProperties containsObject:relationCandidate]) continue;
         NSString *relation = mapping ? mapping[relationCandidate] : relationCandidate;
         if (!relation) continue;
 

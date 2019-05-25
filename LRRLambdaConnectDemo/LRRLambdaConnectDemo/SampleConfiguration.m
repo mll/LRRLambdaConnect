@@ -110,6 +110,10 @@
     }
 }
 
+- (NSSet *) excludedPropertiesForPushForEntity: (NSString *) entityName
+{
+   return [[NSSet alloc] init];
+}
 
 
 @end

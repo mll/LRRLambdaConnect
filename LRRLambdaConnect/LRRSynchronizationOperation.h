@@ -3,7 +3,7 @@
 //  LRRLambdaConnect
 //
 //  Created by Marek Lipert on 06.04.2013.
-//  Copyright (c) 2013-2016 Spinney. All rights reserved.
+//  Copyright (c) 2013-2019 Spinney. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -60,7 +60,7 @@ static NSString *kLRRSyncComplete  = @"LRRSyncComplete";
 /**
  * Returns a dictionary of "ourName:theirName" mapping values for a given entity. 
  * @param entityName Name of CoreData entity the mapping is designated for
- * @return A dictionary with thye mapping. It must contain all fields of the model. If nil is returned, it is assumet that given mapping is an identity.
+ * @return A dictionary with the mapping. It must contain all fields of the model. If nil is returned, it is assumed that given mapping is an identity.
  */
 - (NSDictionary *)mappingForEntityNamed:(NSString *)entityName;
 
@@ -81,6 +81,12 @@ static NSString *kLRRSyncComplete  = @"LRRSyncComplete";
   * @return NSDateFormatter to be used. */
 
 - (NSDateFormatter *)dateFormatter;
+
+/** Returns properties that should be excluded in the push
+    @param entityName The name of the entity being queried 
+    @return An array of property names that are to be excluded. */
+
+- (NSSet *) excludedPropertiesForPushForEntity: (NSString *) entityName;
 
 /** 
  * Produces dictionary of the form:
