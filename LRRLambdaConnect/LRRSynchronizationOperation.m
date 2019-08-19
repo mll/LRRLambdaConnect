@@ -378,7 +378,16 @@
             remainingCount += singleDict.count;
             NSAssert(singleDict,@"No entity in single dict");
             NSFetchRequest *fetch = [NSFetchRequest fetchRequestWithEntityName:entityName];
-            fetch.predicate = [NSPredicate predicateWithFormat:@"%K IN %@",_keyAttribute,[singleDict allKeys]];
+            
+            NSEntityDescription *en = [NSEntityDescription entityForName:entityName inManagedObjectContext:_backgroundContext];
+            NSAttributeDescription *keyDescription = en.attributesByName[_keyAttribute];
+            
+            id (^idConverter)(id) = [keyDescription.attributeValueClassName isEqualToString:@"NSUUID"] ? ^(NSString *repr) { return [[NSUUID alloc] initWithUUIDString:repr]; } : ^(id r) { return r; };
+            
+            NSMutableArray *keysToFetch = [NSMutableArray arrayWithCapacity:1000];
+            for(id key in [singleDict allKeys]) [keysToFetch addObject:idConverter(key)];
+            
+            fetch.predicate = [NSPredicate predicateWithFormat:@"%K IN %@",_keyAttribute, keysToFetch];
             fetch.returnsObjectsAsFaults = NO;
             [fetchedRemainingObjects addObjectsFromArray:[_backgroundContext executeFetchRequest:fetch error:&error]];
             if (error)
@@ -387,9 +396,12 @@
                 return allObjects;
             }
         }
-        for (NSManagedObject *entity in fetchedRemainingObjects)
+        
+        for (NSManagedObject *obj in fetchedRemainingObjects)
         {
-            [allObjects setObject:entity forKey:[NSString stringWithFormat:@"%@%@",entity.entity.name,[entity valueForKey:_keyAttribute]]];
+            id keyObject = [obj valueForKey:_keyAttribute];
+            if([keyObject isKindOfClass:[NSUUID class]]) keyObject = [[keyObject UUIDString] lowercaseString];
+            [allObjects setObject:obj forKey:[NSString stringWithFormat:@"%@%@",obj.entity.name,keyObject]];
         }
 
 
@@ -397,8 +409,8 @@
         {
             NSMutableString *errorString = [NSMutableString string];
             for (NSString *entityName in remainingObjects)
-            for (NSString *id in remainingObjects[entityName])
-                if (allObjects[[NSString stringWithFormat:@"%@%@",entityName,id]] == nil) [errorString appendString:remainingObjects[entityName][id]];
+            for (NSString *idd in remainingObjects[entityName])
+                if (allObjects[[NSString stringWithFormat:@"%@%@",entityName,idd]] == nil) [errorString appendString:remainingObjects[entityName][idd]];
 
             _error = [NSError errorWithDomain:@"SynchronizationOperation" code:0 userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Received data contains references to objects that are neither present in it, nor present in our database: %@", errorString]}];
             return allObjects;
@@ -416,15 +428,15 @@
             for (NSDictionary *object in dictResponse[entityNameCandidate])
             {
                 number++;
-                NSManagedObject *deserializedObject = allObjects[[NSString stringWithFormat:@"%@%@",entityName,object[_keyAttribute]]];
-
+                id keyObject = [object valueForKey:_keyAttribute];
+                if([keyObject isKindOfClass:[NSUUID class]]) keyObject = [[keyObject UUIDString] lowercaseString];
+                NSManagedObject *deserializedObject = allObjects[[NSString stringWithFormat:@"%@%@",entityName,keyObject]];
 
                 for (NSString *relationship in allRelationships)
                 {
                     NSString *mappedRelationship = mapping ? mapping[relationship] : relationship;
                     if (!mappedRelationship) continue;
                 
-
                     id val = object[mappedRelationship];
                     if (!val || [val isKindOfClass:[NSNull class]])
                     {
@@ -437,7 +449,9 @@
                     if (![val isKindOfClass:[NSArray class]])
                     {
                         NSRelationshipDescription *rel = allRelationships[relationship];
-                        NSManagedObject *objetToAdd = allObjects[[NSString stringWithFormat:@"%@%@",rel.destinationEntity.name,val]];
+                        id keyObject = val;
+                        if([keyObject isKindOfClass:[NSUUID class]]) keyObject = [[keyObject UUIDString] lowercaseString];
+                        NSManagedObject *objetToAdd = allObjects[[NSString stringWithFormat:@"%@%@",rel.destinationEntity.name,keyObject]];
                         NSParameterAssert(objetToAdd);
 
                         if (![objetToAdd isKindOfClass:NSClassFromString([NSString stringWithFormat:@"%@", rel.destinationEntity.managedObjectClassName])])
@@ -455,9 +469,11 @@
                         NSMutableSet *relation = rel.isOrdered ? (NSMutableSet *)[[NSMutableOrderedSet alloc] initWithCapacity:1000]  :  [NSMutableSet setWithCapacity:1000];
 
 
-                        for (NSString *id in (NSArray *) val)
+                        for (NSString *idd in (NSArray *) val)
                         {
-                            NSManagedObject *objetToAdd = allObjects[[NSString stringWithFormat:@"%@%@",rel.destinationEntity.name,id]];
+                            id keyObject = idd;
+                            if([keyObject isKindOfClass:[NSUUID class]]) keyObject = [[keyObject UUIDString] lowercaseString];
+                            NSManagedObject *objetToAdd = allObjects[[NSString stringWithFormat:@"%@%@",rel.destinationEntity.name,keyObject]];
 
                             if (![objetToAdd isKindOfClass:NSClassFromString([NSString stringWithFormat:@"%@", rel.destinationEntity.managedObjectClassName])]) {
                                 NSString *errorString = [NSString stringWithFormat:@"Relationship %@ for %@ - %@ expects %@ but got %@ - %@", relationship, deserializedObject.class, [deserializedObject valueForKey:_keyAttribute ], rel.destinationEntity.managedObjectClassName, objetToAdd.class, [objetToAdd valueForKey:_keyAttribute ]];
@@ -510,10 +526,14 @@
             NSParameterAssert(context);
             NSDictionary *mapping = _mappings[entity.name];
 
+            NSAttributeDescription *keyDescription = entity.attributesByName[_keyAttribute];
+            
+            id (^idConverter)(id) = [keyDescription.attributeValueClassName isEqualToString:@"NSUUID"] ? ^(NSString *repr) { return [[NSUUID alloc] initWithUUIDString:repr]; } : ^(id r) { return r; };
+            
             NSMutableArray *ids = [NSMutableArray arrayWithCapacity:array.count];
             for (NSDictionary *d in array)
             { /* rebuilding entrant json-like core foundation representation into array of ids */
-                NSString *uid = d[_keyAttribute];
+                id uid = idConverter(d[_keyAttribute]);
                 NSParameterAssert(uid);
                 [ids addObject:uid];
             }
@@ -544,12 +564,13 @@
             
             for (NSDictionary *serialized in array)
             {
-                NSManagedObject *object = dictResults[serialized[_keyAttribute]];
+                id key = idConverter(serialized[_keyAttribute]);
+                NSManagedObject *object = dictResults[key];
                 if (!object)
                 { /* create object if was not found */
-                    NSAssert(!createdObjects[serialized[_keyAttribute]],@"Database integrity error - we have at least TWO %@ with id %@", entity.name, serialized[_keyAttribute]);
+                    NSAssert(!createdObjects[key],@"Database integrity error - we have at least TWO %@ with id %@", entity.name, key);
                     object = [NSEntityDescription insertNewObjectForEntityForName:entity.name inManagedObjectContext:context];
-                    createdObjects[serialized[_keyAttribute]] = object;
+                    createdObjects[key] = object;
                 }
                 
                 for (NSString *attributeCandidate in entity.attributesByName)
@@ -563,7 +584,6 @@
 
                     if (!value) continue;
                     
-
                     if ([value isKindOfClass:[NSNull class]]) value = nil;
 
 
@@ -573,6 +593,18 @@
                     { /* date formatting */
                         if(![value isKindOfClass:[NSDate class]])
                             value = [dateFormatter dateFromString:value];
+                    }
+                    
+                    if (value && [attribClass isEqualToString:@"NSUUID"])
+                    { /* uuids */
+                        if(![value isKindOfClass:[NSUUID class]])
+                            value = [[NSUUID alloc] initWithUUIDString:value];
+                    }
+                    
+                    if (value && [attribClass isEqualToString:@"NSURL"])
+                    { /* urls */
+                        if(![value isKindOfClass:[NSURL class]])
+                            value = [[NSURL alloc] initWithString:value];
                     }
 
                     if (value && ![value isKindOfClass:NSClassFromString(attribClass)] )
@@ -596,8 +628,11 @@
                 }
                 /* update max counter */
                 maxCounterInternal = maxCounterInternal < [[object valueForKey:@"syncRevision" ] longLongValue] ? [[object valueForKey:@"syncRevision" ] longLongValue] : maxCounterInternal;
-
-                [retVal setObject:object forKey:[NSString stringWithFormat:@"%@%@",object.entity.name,[object valueForKey:_keyAttribute]]];
+                
+                id keyObject = [object valueForKey:_keyAttribute];
+                if([keyObject isKindOfClass:[NSUUID class]]) keyObject = [[keyObject UUIDString] lowercaseString];
+                
+                [retVal setObject:object forKey:[NSString stringWithFormat:@"%@%@",object.entity.name, keyObject]];
             }
         } while (NO);
     }
@@ -623,11 +658,12 @@
         if(object.entity.attributesByName[attributeCandidate].isTransient) continue;
         id val = [object valueForKey:attributeCandidate];
         if (val == nil) val = [NSNull null];
-        if ([val isKindOfClass:[NSDate class]])
-        {
-            val = [_dateFormatter stringFromDate:val];
-        }
-        if (!([val isKindOfClass:[NSNull class]] || [val isKindOfClass:[NSNumber class]] || [val isKindOfClass:[NSString class]])) val = [val description];
+        if ([val isKindOfClass:[NSDate class]]) val = [_dateFormatter stringFromDate:val];
+        if ([val isKindOfClass:[NSUUID class]]) val = [(NSUUID *)val UUIDString];
+        
+        if (!([val isKindOfClass:[NSNull class]] ||
+              [val isKindOfClass:[NSNumber class]] ||
+              [val isKindOfClass:[NSString class]])) val = [val description];
 
         [serialized setObject:val forKey:attribute];
     }
@@ -646,7 +682,10 @@
             NSMutableArray *array = [NSMutableArray array];
             for (NSManagedObject *o in (NSSet *) rel)
             {
-                [array addObject:[o valueForKey:_keyAttribute]];
+                id key = [o valueForKey:_keyAttribute];
+                NSAssert(key, @"No key attribute for entity %@", o);
+                if([key isKindOfClass:[NSUUID class]]) key = [[(NSUUID *)key UUIDString] lowercaseString];
+                [array addObject:key];
                 /* break potential strong cycles by turning o into a fault */
                 [o.managedObjectContext refreshObject:o mergeChanges:NO];
             }
@@ -654,7 +693,11 @@
         } else
         {
             NSManagedObject *o = (NSManagedObject *) rel;
-            [serialized setObject:rel ? [o valueForKey:_keyAttribute] : [NSNull null] forKey:relation];
+            
+            id key = [o valueForKey:_keyAttribute];
+            if([key isKindOfClass:[NSUUID class]]) key = [[(NSUUID *)key UUIDString] lowercaseString];
+            
+            [serialized setObject:rel ? key : [NSNull null] forKey:relation];
             /* break potential strong cycles by turning o into a fault */
             [o.managedObjectContext refreshObject:o mergeChanges:NO];
         }
