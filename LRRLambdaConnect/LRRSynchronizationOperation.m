@@ -136,6 +136,12 @@
         if (_error)
         {
             if(self.shouldDisplayLogs) NSLog(@"*** Synchronization ended with error: %@", _error);
+            if(!_pushError)
+            { /* We save isSuitableForPush changes if push was successful. */
+                self.startSaveDatabaseTime = [NSDate date];
+                [self saveContext];
+                self.stopSaveDatabaseTime = [NSDate date];
+            }
         }
         else
         {
