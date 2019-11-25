@@ -666,10 +666,13 @@
         if (val == nil) val = [NSNull null];
         if ([val isKindOfClass:[NSDate class]]) val = [_dateFormatter stringFromDate:val];
         if ([val isKindOfClass:[NSUUID class]]) val = [(NSUUID *)val UUIDString];
+        if ([val isKindOfClass:[NSURL class]]) val = [(NSURL *)val absoluteString];
         
         if (!([val isKindOfClass:[NSNull class]] ||
               [val isKindOfClass:[NSNumber class]] ||
-              [val isKindOfClass:[NSString class]])) val = [val description];
+              [val isKindOfClass:[NSString class]] ||
+              [val isKindOfClass:[NSURL class]]
+              )) val = [val description];
 
         [serialized setObject:val forKey:attribute];
     }
